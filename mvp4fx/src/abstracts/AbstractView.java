@@ -231,7 +231,8 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
      * @param tipoPresenter
      * @param tipoInteractor
      */
-    protected void inyectarDependencias(Class<? extends AbstractPresenter> tipoPresenter, Class<? extends AbstractInteractor> tipoInteractor) {
+    protected void inyectarDependencias(Class<T1> tipoPresenter,
+            Class<? extends AbstractInteractor<T1>> tipoInteractor) {
 
         try {
 
@@ -244,7 +245,7 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
             this.setPresenter((T1) presenterTmp);
 
         } catch (InstantiationException | IllegalAccessException ex) {
-            showError("Error al inyectar dependencias MVP ");
+            showError("Error al inyectar dependencias MVP en" + getClass().getName());
         }
 
     }
