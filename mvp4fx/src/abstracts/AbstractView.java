@@ -1,7 +1,10 @@
 package abstracts;
 
+import Exceptions.Mvp4FxException;
 import java.io.File;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -41,6 +44,17 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
      * @return
      */
     public T1 getPresenter() {
+
+        if (presenter == null) {
+            try {
+                throw new Mvp4FxException("El presentador es nulo, ¿ha inyectado las dependencias?..."
+                        + " para inyectar dependencias se ha de llamar"
+                        + " a inyertarDependencias(presenter.class, interactor.class);");
+            } catch (Mvp4FxException ex) {
+                Logger.getLogger(AbstractView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
         return presenter;
     }
 
@@ -231,8 +245,7 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
      * @param tipoPresenter
      * @param tipoInteractor
      */
-    protected void inyectarDependencias(Class<T1> tipoPresenter,
-            Class<? extends AbstractInteractor<T1>> tipoInteractor) {
+    protected void inyectarDependencias(Class<T1> tipoPresenter, Class<? extends AbstractInteractor<T1>> tipoInteractor) {
 
         try {
 
@@ -245,8 +258,14 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
             this.setPresenter((T1) presenterTmp);
 
         } catch (InstantiationException | IllegalAccessException ex) {
-            showError("Error al inyectar dependencias MVP en" + getClass().getName());
+            try {
+                throw new Mvp4FxException("Error al inyectar dependencias MVP..."
+                        + " ¿has pasado los tipos de clase adecuados al llamar a inyectarDependencias?");
+            } catch (Mvp4FxException ex1) {
+                Logger.getLogger(AbstractView.class.getName()).log(Level.SEVERE, null, ex1);
+            }
         }
 
     }
+
 }
