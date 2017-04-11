@@ -13,10 +13,6 @@ public abstract class AbstractInteractor<T extends AbstractPresenter> {
         return presenter;
     }
 
-    public void setPresenter(T presenter) {
-        this.presenter = presenter;
-    }
-
     public void notifyError(String mensajeCausa) {
         getPresenter().captureError(mensajeCausa);
     }

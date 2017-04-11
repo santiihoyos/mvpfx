@@ -59,14 +59,6 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
     }
 
     /**
-     *
-     * @param presenter
-     */
-    public void setPresenter(T1 presenter) {
-        this.presenter = presenter;
-    }
-
-    /**
      * Dialogo simple sin ventana dueña.
      *
      * @param message
@@ -137,7 +129,8 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(tituloDialogo);
-        fileChooser.setInitialDirectory(ultimoDiretorio != null ? new File(ultimoDiretorio) : new File(System.getProperty("user.home")));
+        fileChooser.setInitialDirectory(ultimoDiretorio != null ? new File(ultimoDiretorio)
+                : new File(System.getProperty("user.home")));
 
         File file = fileChooser.showOpenDialog(ventanaPadre);
 
@@ -188,6 +181,7 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
      * @param rutaFXML
      * @param rutaEstilo
      * @param owner
+     * @param parametrosClaveValor
      * @return deveulve el Stage asociado para ser mostrado cuando se quiera
      */
     protected Stage obtenerNuevaVentanaConRecursos(String nombreVentana, String rutaFXML, String rutaEstilo, Stage owner, HashMap<String, Object> parametrosClaveValor) {
@@ -252,10 +246,10 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
             AbstractInteractor interactorTmp = (AbstractInteractor) tipoInteractor.newInstance();
             AbstractPresenter presenterTmp = (AbstractPresenter) tipoPresenter.newInstance();
 
-            presenterTmp.setView(this);
-            presenterTmp.setInteractor(interactorTmp);
-            interactorTmp.setPresenter(presenterTmp);
-            this.setPresenter((T1) presenterTmp);
+            presenterTmp.view = this;
+            presenterTmp.interactor = interactorTmp;
+            interactorTmp.presenter = presenterTmp;
+            this.presenter = (T1) presenterTmp;
 
         } catch (InstantiationException | IllegalAccessException ex) {
             try {
