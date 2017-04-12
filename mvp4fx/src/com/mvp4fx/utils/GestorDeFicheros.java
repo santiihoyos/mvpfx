@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utils;
+package com.mvp4fx.utils;
 
 import com.csvreader.CsvReader;
 import java.io.File;

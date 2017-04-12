@@ -1,7 +1,11 @@
-package abstracts;
+package com.mvp4fx.abstracts;
 
+import com.mvp4fx.exceptions.Mvp4FxException;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -27,7 +31,7 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
     /**
      * Presentador de las vistas
      */
-    protected T1 presenter;
+    private T1 presenter;
 
     /**
      * Ultimo directorio que se selecciono.
@@ -41,15 +45,18 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
      * @return
      */
     public T1 getPresenter() {
-        return presenter;
-    }
 
-    /**
-     *
-     * @param presenter
-     */
-    public void setPresenter(T1 presenter) {
-        this.presenter = presenter;
+        if (presenter == null) {
+            try {
+                throw new Mvp4FxException("El presentador es nulo, ¿ha inyectado las dependencias?..."
+                        + " para inyectar dependencias se ha de llamar"
+                        + " a inyertarDependencias(presenter.class, interactor.class);");
+            } catch (Mvp4FxException ex) {
+                Logger.getLogger(AbstractView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        return presenter;
     }
 
     /**
@@ -123,7 +130,8 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(tituloDialogo);
-        fileChooser.setInitialDirectory(ultimoDiretorio != null ? new File(ultimoDiretorio) : new File(System.getProperty("user.home")));
+        fileChooser.setInitialDirectory(ultimoDiretorio != null ? new File(ultimoDiretorio)
+                : new File(System.getProperty("user.home")));
 
         File file = fileChooser.showOpenDialog(ventanaPadre);
 
@@ -174,6 +182,7 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
      * @param rutaFXML
      * @param rutaEstilo
      * @param owner
+     * @param parametrosClaveValor
      * @return deveulve el Stage asociado para ser mostrado cuando se quiera
      */
     protected Stage obtenerNuevaVentanaConRecursos(String nombreVentana, String rutaFXML, String rutaEstilo, Stage owner, HashMap<String, Object> parametrosClaveValor) {
@@ -231,22 +240,41 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
      * @param tipoPresenter
      * @param tipoInteractor
      */
-    protected void inyectarDependencias(Class<T1> tipoPresenter,
-            Class<? extends AbstractInteractor<T1>> tipoInteractor) {
+    protected void inyectarDependencias(Class<T1> tipoPresenter, Class<? extends AbstractInteractor<T1>> tipoInteractor) {
 
         try {
 
             AbstractInteractor interactorTmp = (AbstractInteractor) tipoInteractor.newInstance();
             AbstractPresenter presenterTmp = (AbstractPresenter) tipoPresenter.newInstance();
-
-            presenterTmp.setView(this);
-            presenterTmp.setInteractor(interactorTmp);
-            interactorTmp.setPresenter(presenterTmp);
-            this.setPresenter((T1) presenterTmp);
+            
+            Field vistaPresenter = presenterTmp.getClass().getSuperclass().getDeclaredField("view");
+            vistaPresenter.setAccessible(true);
+            vistaPresenter.set(presenterTmp, this);
+            vistaPresenter.setAccessible(false);
+            
+            Field interactoPresenter = presenterTmp.getClass().getSuperclass().getDeclaredField("interactor");
+            interactoPresenter.setAccessible(true);
+            interactoPresenter.set(presenterTmp, interactorTmp);
+            interactoPresenter.setAccessible(false);
+            
+            Field presenterInteractor = interactorTmp.getClass().getSuperclass().getDeclaredField("presenter");
+            presenterInteractor.setAccessible(true);
+            presenterInteractor.set(interactorTmp, presenterTmp);
+            presenterInteractor.setAccessible(false);
+            
+            this.presenter = (T1) presenterTmp;
 
         } catch (InstantiationException | IllegalAccessException ex) {
-            showError("Error al inyectar dependencias MVP en" + getClass().getName());
+            try {
+                throw new Mvp4FxException("Error al inyectar dependencias MVP..."
+                        + " ¿has pasado los tipos de clase adecuados al llamar a inyectarDependencias?");
+            } catch (Mvp4FxException ex1) {
+                Logger.getLogger(AbstractView.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+        } catch (NoSuchFieldException | SecurityException ex) {
+            Logger.getLogger(AbstractView.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
+
 }
