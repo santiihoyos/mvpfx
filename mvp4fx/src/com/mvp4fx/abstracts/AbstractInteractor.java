@@ -1,4 +1,4 @@
-package abstracts;
+package com.mvp4fx.abstracts;
 
 /**
  *
@@ -7,7 +7,7 @@ package abstracts;
  */
 public abstract class AbstractInteractor<T extends AbstractPresenter> {
 
-    protected T presenter;
+    private T presenter;
 
     protected T getPresenter() {
         return presenter;

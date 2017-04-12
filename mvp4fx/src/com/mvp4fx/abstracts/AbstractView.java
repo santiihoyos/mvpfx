@@ -1,7 +1,8 @@
-package abstracts;
+package com.mvp4fx.abstracts;
 
-import Exceptions.Mvp4FxException;
+import com.mvp4fx.exceptions.Mvp4FxException;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +31,7 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
     /**
      * Presentador de las vistas
      */
-    protected T1 presenter;
+    private T1 presenter;
 
     /**
      * Ultimo directorio que se selecciono.
@@ -245,10 +246,22 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
 
             AbstractInteractor interactorTmp = (AbstractInteractor) tipoInteractor.newInstance();
             AbstractPresenter presenterTmp = (AbstractPresenter) tipoPresenter.newInstance();
-
-            presenterTmp.view = this;
-            presenterTmp.interactor = interactorTmp;
-            interactorTmp.presenter = presenterTmp;
+            
+            Field vistaPresenter = presenterTmp.getClass().getSuperclass().getDeclaredField("view");
+            vistaPresenter.setAccessible(true);
+            vistaPresenter.set(presenterTmp, this);
+            vistaPresenter.setAccessible(false);
+            
+            Field interactoPresenter = presenterTmp.getClass().getSuperclass().getDeclaredField("interactor");
+            interactoPresenter.setAccessible(true);
+            interactoPresenter.set(presenterTmp, interactorTmp);
+            interactoPresenter.setAccessible(false);
+            
+            Field presenterInteractor = interactorTmp.getClass().getSuperclass().getDeclaredField("presenter");
+            presenterInteractor.setAccessible(true);
+            presenterInteractor.set(interactorTmp, presenterTmp);
+            presenterInteractor.setAccessible(false);
+            
             this.presenter = (T1) presenterTmp;
 
         } catch (InstantiationException | IllegalAccessException ex) {
@@ -258,6 +271,8 @@ public abstract class AbstractView<T1 extends AbstractPresenter> implements Init
             } catch (Mvp4FxException ex1) {
                 Logger.getLogger(AbstractView.class.getName()).log(Level.SEVERE, null, ex1);
             }
+        } catch (NoSuchFieldException | SecurityException ex) {
+            Logger.getLogger(AbstractView.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }

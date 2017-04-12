@@ -1,4 +1,4 @@
-package Exceptions;
+package com.mvp4fx.exceptions;
 
 /**
  * Excepcion personalizada para notificar errores de mal implementacion de la
